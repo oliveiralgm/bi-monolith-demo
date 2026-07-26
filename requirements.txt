@@ -1,0 +1,7 @@
+dash>=2.14,<3
+flask>=2.3,<4
+plotly>=5.18,<6
+pandas>=2.0,<3
+numpy>=1.24,<3
+python-dotenv>=1.0,<2
+gunicorn>=21.2,<24

@@ -1,0 +1,9 @@
+.venv
+.env
+__pycache__
+*.pyc
+.git
+data/telemetry.sqlite
+*.sqlite
+.DS_Store
+MANUAL_STEPS.md
