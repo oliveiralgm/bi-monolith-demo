@@ -23,7 +23,8 @@ def page_shell(title: str, subtitle: str, controls, charts) -> html.Div:
             html.Div(className="controls", children=controls),
             html.Div(className="charts", children=charts),
             html.P(
-                "Mock data only. Public architecture demo, not production Achieve code.",
+                "Personal portfolio demo. Mock data and original code. "
+                "Not the production systems or proprietary code from any employer.",
                 className="footnote",
             ),
         ],

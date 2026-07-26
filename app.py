@@ -2,7 +2,8 @@
 Public BI monolith scaffold for Gustavo Oliveira.
 
 Single Flask process + auto-discovered Dash dashboards.
-Portfolio architecture demo with mock data. Not Achieve production code.
+Personal portfolio demo. Mock data and original code.
+Not the production systems or proprietary code from any employer.
 """
 
 from __future__ import annotations
@@ -102,7 +103,10 @@ LOCKED_HTML = """
         <div><a href="https://www.linkedin.com/in/oliveiralgm/" target="_blank" rel="noopener">LinkedIn</a></div>
       </div>
     </div>
-    <p class="footnote">Mock data only. Not Achieve production code.</p>
+    <p class="disclaimer">
+      Personal portfolio demo. Mock data and original code.
+      Not the production systems or proprietary code from any employer.
+    </p>
   </main>
 </body>
 </html>
@@ -131,6 +135,10 @@ HOME_HTML = """
       <a href="{{ url_for('logout') }}">Lock again</a>
       {% endif %}
     </div>
+    <p class="disclaimer">
+      Personal portfolio demo. Mock data and original code.
+      Not the production systems or proprietary code from any employer.
+    </p>
     <h1>Staff analytics platform demo</h1>
     <p class="lede">
       Auto-discovery mounting: every module in <code>dashboards/</code> that exposes a

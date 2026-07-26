@@ -2,13 +2,15 @@
 
 **Live playground:** [https://bi-monolith-demo.onrender.com/](https://bi-monolith-demo.onrender.com/)
 
-Public click-and-play demo (no access key). Free-tier Render may take ~30-60s on first hit after idle (cold start). Mock data only.
+> **Personal portfolio demo. Mock data and original code. Not the production systems or proprietary code from any employer.**
+
+Public click-and-play demo (no access key). Free-tier Render may take ~30-60s on first hit after idle (cold start).
 
 ---
 
 Public **Staff analytics platform** architecture demo for [Gustavo Oliveira](https://github.com/oliveiralgm). One Flask + Dash process auto-discovers dashboard modules, mounts metric-style mock surfaces, and includes a page-load telemetry stub plus AI-assisted analytics framing on the home page.
 
-Built for reviewers evaluating Staff / Senior Analytics Engineer work: platform patterns (auto-mount, shared shell, adoption telemetry), experiment modernization (Tableau → Dash spirit), and lead conversion / consumer funnel readout. **Mock data only. Personal portfolio. Not employer production code.**
+Built for reviewers evaluating Staff / Senior Analytics Engineer work: platform patterns (auto-mount, shared shell, adoption telemetry), experiment modernization (Tableau → Dash spirit), and lead conversion / consumer funnel readout.
 
 Contact: [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) · [LinkedIn](https://www.linkedin.com/in/oliveiralgm/)
 
