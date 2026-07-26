@@ -20,7 +20,7 @@ Contact: [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) · [LinkedIn](htt
 | **Pair Trader Lab** (`/d/pair-trader/`) | Spread / z-score pairs playground inspired by [pair_trader](https://github.com/oliveiralgm/pair_trader). Portfolio demo only. Not financial advice. |
 | **Experiment Readout** | A/B sample size, lift, MoE, power-style hints (self-serve experiment owners) |
 | **Platform Adoption** | DAU, peak users, per-dashboard usage + local sqlite page-load stub |
-| **Stubs on home** | Ops utilization, metric contracts, AI-assisted analytics (full suite on request) |
+| **Stubs on home** | Metric contracts, AI-assisted analytics (full suite on request) |
 
 Architecture signals: single process, `DASHBOARD` dict registration, key gate / public playground mode, deployable Blueprint.
 
@@ -49,7 +49,7 @@ With `BI_DEMO_PUBLIC=1`, visitors open the samples with no key. Stub cards stay 
 
 ## What stays private
 
-Richer local modules and private walkthrough materials live outside this repo. Email or LinkedIn for a walkthrough of the complete set (ops utilization, metric contracts, AI-assisted surfaces, and related patterns).
+Richer local modules and private walkthrough materials live outside this repo. Email or LinkedIn for a walkthrough of the complete set (metric contracts, AI-assisted surfaces, and related patterns).
 
 ## Run locally (key gate)
 
@@ -128,4 +128,4 @@ Authenticated HTML navigations append a row to `data/telemetry.sqlite`. Delete t
 
 ## Request the full suite
 
-Email [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) or message on [LinkedIn](https://www.linkedin.com/in/oliveiralgm/) for a walkthrough of the fuller set (ops utilization, metric contracts, AI-assisted analytics, and related platform patterns).
+Email [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) or message on [LinkedIn](https://www.linkedin.com/in/oliveiralgm/) for a walkthrough of the fuller set (metric contracts, AI-assisted analytics, and related platform patterns).

@@ -101,7 +101,6 @@ def platform_adoption_daily() -> pd.DataFrame:
         "experiment-readout",
         "adoption",
         "pair-trader",
-        "ops-utilization",
     ]
     rows = []
     for i, day in enumerate(days):

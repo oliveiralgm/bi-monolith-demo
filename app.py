@@ -56,11 +56,6 @@ DASHBOARD_ALIASES = {
 # Extra suite topics kept as stubs. Full walkthrough available on request.
 STUB_DASHBOARDS = [
     {
-        "title": "Ops Utilization",
-        "summary": "Team utilization and touch-time views for operations coaching. Full module on request.",
-        "source_topic": "Leadership analytics pattern",
-    },
-    {
         "title": "Metric Contracts",
         "summary": "Definition-first metrics browser with grain and owner metadata. Full module on request.",
         "source_topic": "Metrics systems",
