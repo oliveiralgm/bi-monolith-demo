@@ -1,8 +1,20 @@
-# Manual steps (GitHub profile)
+# Manual steps
 
-The `gh` token in this environment has `repo` / `gist` / `read:org` / `workflow` scopes, but not `user`. Updating the authenticated profile via `PATCH /user` returned 404 until the `user` scope is granted.
+## 1) GitHub profile bio (API blocked here)
 
-## Option A: refresh gh scope, then API
+The `gh` token lacks the `user` scope, so `PATCH /user` returns 404. Paste in the UI, or refresh the scope.
+
+### Paste at https://github.com/settings/profile
+
+- **Bio** (~160 chars):
+
+  `Sr Staff Data Analyst at Achieve. Analytics platforms, metric contracts, and AI-assisted BI.`
+
+- **Company**: `Achieve`
+- **Website**: `https://www.linkedin.com/in/oliveiralgm/`
+- **Public email** (if available): `oliveiralgm@gmail.com`
+
+### Or refresh gh scope
 
 ```bash
 gh auth refresh -h github.com -s user
@@ -11,29 +23,20 @@ gh api -X PATCH /user \
   -f company='Achieve' \
   -f blog='https://www.linkedin.com/in/oliveiralgm/' \
   -f email='oliveiralgm@gmail.com'
-```
-
-Confirm:
-
-```bash
 gh api user --jq '{bio,company,blog,email}'
 ```
 
-## Option B: paste in the GitHub UI
+Observed before update: stale generic bio, empty company/blog.
 
-1. Open https://github.com/settings/profile
-2. **Bio** (under ~160 chars):
+## 2) One-click hosted playground (Render)
 
-   `Sr Staff Data Analyst at Achieve. Analytics platforms, metric contracts, and AI-assisted BI.`
+No Render/Fly/Railway CLI login was available in this environment. Deploy files are already in the repo (`render.yaml`, `Dockerfile`, `Procfile`) with `BI_DEMO_PUBLIC=1`.
 
-3. **Company**: `Achieve`
-4. **Website**: `https://www.linkedin.com/in/oliveiralgm/`
-5. **Public email** (if the dropdown allows): `oliveiralgm@gmail.com`
-6. Save changes
+1. Open: https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo
+2. Sign in with GitHub.
+3. Confirm the Blueprint (free web service). Env includes `BI_DEMO_PUBLIC=1`.
+4. Wait for deploy. Open the `*.onrender.com` URL. Sample funnel should load with no key.
+5. Optional: edit README "Live playground" and replace the placeholder with your URL.
+6. Optional CLI later: `render login` then deploy from the Blueprint.
 
-## Current values observed before update
-
-- bio: stale generic "8 years / data-driven insights" text
-- company: empty
-- blog: empty
-- email: not returned by API (often private unless made public)
+Free tier sleeps when idle; first hit after sleep can take ~30-60s.
