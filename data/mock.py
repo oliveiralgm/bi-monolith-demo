@@ -96,7 +96,13 @@ def platform_adoption_daily() -> pd.DataFrame:
     weekend_dip = np.where(weekday >= 5, 0.55, 1.0)
     dau = np.clip(base * weekend_dip, 40, None).astype(int)
     peak = (dau * RNG.uniform(0.18, 0.32, size=len(days))).astype(int)
-    dashboards = ["lead-conversion", "experiment-readout", "adoption", "ops-utilization"]
+    dashboards = [
+        "lead-conversion",
+        "experiment-readout",
+        "adoption",
+        "pair-trader",
+        "ops-utilization",
+    ]
     rows = []
     for i, day in enumerate(days):
         shares = RNG.dirichlet([3.0, 2.2, 1.8, 1.2])

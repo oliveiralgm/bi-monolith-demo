@@ -17,6 +17,7 @@ Contact: [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) · [LinkedIn](htt
 | Surface | What it demonstrates |
 |---------|----------------------|
 | **Lead Conversion** (`/d/lead-conversion/`) | Application → review → offer → funding with channel/cohort slices |
+| **Pair Trader Lab** (`/d/pair-trader/`) | Spread / z-score pairs playground inspired by [pair_trader](https://github.com/oliveiralgm/pair_trader). Portfolio demo only. Not financial advice. |
 | **Experiment Readout** | A/B sample size, lift, MoE, power-style hints (self-serve experiment owners) |
 | **Platform Adoption** | DAU, peak users, per-dashboard usage + local sqlite page-load stub |
 | **Stubs on home** | Ops utilization, metric contracts, AI-assisted analytics (full suite on request) |
@@ -39,8 +40,9 @@ With `BI_DEMO_PUBLIC=1`, visitors open the samples with no key. Stub cards stay 
 - Auto-discovery: modules in `dashboards/` expose a `DASHBOARD` dict; `discovery.py` mounts each at `/d/<slug>/`
 - Access key gate for local clones (`BI_DEMO_KEY` from env; no private key is committed)
 - **Public playground mode** (`BI_DEMO_PUBLIC=1`): unlocks samples for click-and-play on hosted deploys
-- Three working samples: Lead Conversion (`/d/lead-conversion/`), Experiment Readout, Platform Adoption
+- Working samples: Lead Conversion (`/d/lead-conversion/`), Pair Trader Lab (`/d/pair-trader/`), Experiment Readout, Platform Adoption
 - Alias redirects from older paths (`/d/intercom-funnel/`, `/d/consumer-funnel/`, `/d/lead-funnel/`)
+- Pair Trader Lab uses Yahoo prices when available, otherwise a synthetic correlated series (offline-safe on Render)
 - Home-page stubs for the fuller suite (contact for walkthrough)
 - Telemetry stub writing page loads to local sqlite
 - `Dockerfile`, `Procfile`, and `render.yaml` for free-tier hosting

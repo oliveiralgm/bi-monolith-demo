@@ -140,8 +140,8 @@ HOME_HTML = """
     <p class="lede">
       Auto-discovery mounting: every module in <code>dashboards/</code> that exposes a
       <code>DASHBOARD</code> dict is registered under one Flask/Dash process. This public
-      playground ships lead conversion, experiment readout, and platform adoption samples
-      on mock data. Stub cards below mark the fuller suite
+      playground ships lead conversion, a pair-trader lab, experiment readout, and platform
+      adoption samples on mock / public data. Stub cards below mark the fuller suite
       {% if public_mode %}available on request{% else %}available with a private key / walkthrough{% endif %}.
     </p>
     <div class="card-list">
