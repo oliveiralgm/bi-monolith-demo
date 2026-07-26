@@ -8,7 +8,7 @@ Public click-and-play demo (no access key). Free-tier Render may take ~30-60s on
 
 Public **Staff analytics platform** architecture demo for [Gustavo Oliveira](https://github.com/oliveiralgm). One Flask + Dash process auto-discovers dashboard modules, mounts metric-style mock surfaces, and includes a page-load telemetry stub plus AI-assisted analytics framing on the home page.
 
-Built for reviewers evaluating Staff / Senior Analytics Engineer work: platform patterns (auto-mount, shared shell, adoption telemetry), experiment modernization (Tableau → Dash spirit), and digital consumer funnel readout. **Mock data only. Personal portfolio. Not employer production code.**
+Built for reviewers evaluating Staff / Senior Analytics Engineer work: platform patterns (auto-mount, shared shell, adoption telemetry), experiment modernization (Tableau → Dash spirit), and lead conversion / consumer funnel readout. **Mock data only. Personal portfolio. Not employer production code.**
 
 Contact: [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) · [LinkedIn](https://www.linkedin.com/in/oliveiralgm/)
 
@@ -16,7 +16,7 @@ Contact: [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) · [LinkedIn](htt
 
 | Surface | What it demonstrates |
 |---------|----------------------|
-| **Consumer Funnel** | Application → review → offer → funding with channel/cohort slices |
+| **Lead Conversion** (`/d/lead-conversion/`) | Application → review → offer → funding with channel/cohort slices |
 | **Experiment Readout** | A/B sample size, lift, MoE, power-style hints (self-serve experiment owners) |
 | **Platform Adoption** | DAU, peak users, per-dashboard usage + local sqlite page-load stub |
 | **Stubs on home** | Ops utilization, metric contracts, AI-assisted analytics (full suite on request) |
@@ -39,7 +39,8 @@ With `BI_DEMO_PUBLIC=1`, visitors open the samples with no key. Stub cards stay 
 - Auto-discovery: modules in `dashboards/` expose a `DASHBOARD` dict; `discovery.py` mounts each at `/d/<slug>/`
 - Access key gate for local clones (`BI_DEMO_KEY` from env; no private key is committed)
 - **Public playground mode** (`BI_DEMO_PUBLIC=1`): unlocks samples for click-and-play on hosted deploys
-- Three working samples: Consumer Funnel, Experiment Readout, Platform Adoption
+- Three working samples: Lead Conversion (`/d/lead-conversion/`), Experiment Readout, Platform Adoption
+- Alias redirects from older paths (`/d/intercom-funnel/`, `/d/consumer-funnel/`, `/d/lead-funnel/`)
 - Home-page stubs for the fuller suite (contact for walkthrough)
 - Telemetry stub writing page loads to local sqlite
 - `Dockerfile`, `Procfile`, and `render.yaml` for free-tier hosting

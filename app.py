@@ -43,6 +43,16 @@ DASHBOARDS = discover_dashboards()
 DASH_APPS = mount_dashboards(server, DASHBOARDS)
 _SLUG_RE = re.compile(r"^/d/([^/]+)")
 
+# Old bookmarks / prior deploys (Lead Funnel Conversion, consumer rename).
+DASHBOARD_ALIASES = {
+    "intercom-funnel": "lead-conversion",
+    "lead-funnel": "lead-conversion",
+    "lead_conversion": "lead-conversion",
+    "lead_funnel": "lead-conversion",
+    "consumer-funnel": "lead-conversion",
+    "consumer_funnel": "lead-conversion",
+}
+
 # Extra suite topics kept as stubs. Full walkthrough available on request.
 STUB_DASHBOARDS = [
     {
@@ -130,7 +140,7 @@ HOME_HTML = """
     <p class="lede">
       Auto-discovery mounting: every module in <code>dashboards/</code> that exposes a
       <code>DASHBOARD</code> dict is registered under one Flask/Dash process. This public
-      playground ships consumer funnel, experiment readout, and platform adoption samples
+      playground ships lead conversion, experiment readout, and platform adoption samples
       on mock data. Stub cards below mark the fuller suite
       {% if public_mode %}available on request{% else %}available with a private key / walkthrough{% endif %}.
     </p>
@@ -201,6 +211,21 @@ def gate_and_telemetry():
 @server.get("/healthz")
 def healthz():
     return {"ok": True, "dashboards": [d.slug for d in DASHBOARDS]}
+
+
+def _register_dashboard_aliases() -> None:
+    """Redirect retired slugs; only register explicit paths so Dash mounts stay untouched."""
+    for idx, (old, new) in enumerate(DASHBOARD_ALIASES.items()):
+        target = new
+
+        def _redir(target: str = target):
+            return redirect(f"/d/{target}/", code=302)
+
+        server.add_url_rule(f"/d/{old}/", endpoint=f"alias_{idx}", view_func=_redir)
+        server.add_url_rule(f"/d/{old}", endpoint=f"alias_{idx}_noslash", view_func=_redir)
+
+
+_register_dashboard_aliases()
 
 
 @server.route("/locked", methods=["GET"])

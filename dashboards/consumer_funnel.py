@@ -1,4 +1,4 @@
-"""Digital consumer funnel (application to funding). Mock portfolio data only."""
+"""Lead conversion / consumer funnel (application to funding). Mock portfolio data only."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ def layout():
     df = consumer_funnel_events()
     channels = sorted(df["channel"].unique())
     return page_shell(
-        title="Consumer Funnel",
+        title="Lead Conversion",
         subtitle=(
             "Application → review → offer → funding with channel and cohort slices. "
             "Metric-style mock dashboard for a Staff analytics platform demo."
@@ -126,8 +126,8 @@ def register_callbacks(app):
 
 
 DASHBOARD = {
-    "slug": "consumer-funnel",
-    "title": "Consumer Funnel",
+    "slug": "lead-conversion",
+    "title": "Lead Conversion",
     "summary": "Application → review → offer → funding with channel and cohort slices.",
     "source_topic": "Digital / consumer funnel pattern",
     "order": 10,
