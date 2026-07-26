@@ -1,36 +1,45 @@
-# BI Monolith Demo (public scaffold)
+# BI Monolith Demo
 
-Public architecture demo for **Gustavo Oliveira**. One Flask + Dash process auto-discovers dashboard modules, mounts them under a single app, and includes a tiny page-load telemetry stub.
+Public **Staff analytics platform** architecture demo for [Gustavo Oliveira](https://github.com/oliveiralgm). One Flask + Dash process auto-discovers dashboard modules, mounts metric-style mock surfaces, and includes a page-load telemetry stub plus AI-assisted analytics framing on the home page.
 
-This is a **personal portfolio scaffold**, not Achieve production code. Data is synthetic. Full dashboard implementations beyond the sample are available on request.
+Built for reviewers evaluating Staff / Senior Analytics Engineer work: platform patterns (auto-mount, shared shell, adoption telemetry), experiment modernization (Tableau → Dash spirit), and digital consumer funnel readout. **Mock data only. Personal portfolio. Not employer production code.**
 
 Contact: [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) · [LinkedIn](https://www.linkedin.com/in/oliveiralgm/)
+
+## Why this repo (for Staff AE / platform reviewers)
+
+| Surface | What it demonstrates |
+|---------|----------------------|
+| **Consumer Funnel** | Application → review → offer → funding with channel/cohort slices |
+| **Experiment Readout** | A/B sample size, lift, MoE, power-style hints (self-serve experiment owners) |
+| **Platform Adoption** | DAU, peak users, per-dashboard usage + local sqlite page-load stub |
+| **Stubs on home** | Ops utilization, metric contracts, AI-assisted analytics (full suite on request) |
+
+Architecture signals: single process, `DASHBOARD` dict registration, key gate / public playground mode, deployable Blueprint.
 
 ## Live playground
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo)
 
-**Hosted demo:** set after first deploy (see Deploy below). With `BI_DEMO_PUBLIC=1`, visitors open the sample with no key. Stub cards stay placeholders; the fuller suite needs a walkthrough.
-
-If a live URL is already running, it will be linked here after deploy:
+**Hosted demo:** set after first deploy (you still need to click Deploy once). With `BI_DEMO_PUBLIC=1`, visitors open the samples with no key. Stub cards stay placeholders; email for the fuller suite walkthrough.
 
 - Live URL: _(add after Render finishes, e.g. `https://bi-monolith-demo.onrender.com`)_
+- One-click: https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo
 
 ## What this repo includes
 
 - Flask server hosting Dash apps in one process
 - Auto-discovery: modules in `dashboards/` expose a `DASHBOARD` dict; `discovery.py` mounts each at `/d/<slug>/`
-- Access key gate for local clones (`BI_DEMO_KEY` from env; no real private key is committed)
-- **Public playground mode** (`BI_DEMO_PUBLIC=1`): unlocks the sample for click-and-play on hosted deploys
-- Locked contact page when public mode is off and no valid key is present
-- **One working sample**: Lead Funnel Conversion (`/d/intercom-funnel/`) with mock data
-- Home-page stub cards for other portfolio topics (full modules on request)
-- Telemetry stub that writes page loads to local sqlite
+- Access key gate for local clones (`BI_DEMO_KEY` from env; no private key is committed)
+- **Public playground mode** (`BI_DEMO_PUBLIC=1`): unlocks samples for click-and-play on hosted deploys
+- Three working samples: Consumer Funnel, Experiment Readout, Platform Adoption
+- Home-page stubs for the fuller suite (contact for walkthrough)
+- Telemetry stub writing page loads to local sqlite
 - `Dockerfile`, `Procfile`, and `render.yaml` for free-tier hosting
 
 ## What stays private
 
-The fuller local demo (additional dashboards, private walkthrough materials) lives outside this repo. Email or LinkedIn for a walkthrough of the complete set.
+Richer local modules and private walkthrough materials live outside this repo. Email or LinkedIn for a walkthrough of the complete set (ops utilization, metric contracts, AI-assisted surfaces, and related patterns).
 
 ## Run locally (key gate)
 
@@ -45,30 +54,26 @@ cp .env.example .env
 python app.py
 ```
 
-Open `http://127.0.0.1:8050/`. Without the key you see the locked contact page. After unlock, the home page lists the mounted sample plus stubs.
+Open `http://127.0.0.1:8050/`. Without the key you see the locked contact page. After unlock, the home page lists mounted samples plus stubs.
 
 Unlock once via query param: `http://127.0.0.1:8050/?key=YOUR_KEY`
 
 ### Local public mode (optional)
-
-To mimic the hosted playground locally:
 
 ```bash
 # in .env
 BI_DEMO_PUBLIC=1
 ```
 
-Then `python app.py` opens the sample with no key prompt.
+Then `python app.py` opens the samples with no key prompt.
 
 ## Deploy (Render free tier)
 
-1. Push this repo to GitHub (already the intended source).
-2. Click **Deploy to Render** above, or open:
-   `https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo`
-3. Sign in to Render (GitHub OAuth is fine).
-4. Confirm the Blueprint: `BI_DEMO_PUBLIC=1` is set so visitors can play without a key.
-5. After deploy, open the `*.onrender.com` URL and try **Lead Funnel Conversion**.
-6. Paste that URL into the Live playground section of this README (or pin it from your profile).
+1. Open: https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo
+2. Sign in to Render (GitHub OAuth is fine).
+3. Confirm the Blueprint: `BI_DEMO_PUBLIC=1` is set so visitors can play without a key.
+4. After deploy, open the `*.onrender.com` URL and try the three samples.
+5. Paste that URL into the Live playground section above (or your profile README).
 
 Free Render services sleep after idle time; the first request after sleep can take ~30-60s.
 
@@ -109,8 +114,8 @@ Modules whose names start with `_` are skipped (shared helpers).
 
 ## Telemetry stub
 
-Authenticated HTML navigations append a row to `data/telemetry.sqlite`. Delete that file anytime to reset. The public scaffold does not ship the adoption dashboard that charts those rows.
+Authenticated HTML navigations append a row to `data/telemetry.sqlite`. Delete that file anytime to reset. The Platform Adoption sample charts mock suite DAU/peak plus this local stub.
 
-## Request the full dashboards
+## Request the full suite
 
-Email [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) or message on [LinkedIn](https://www.linkedin.com/in/oliveiralgm/) for a walkthrough of the fuller set (forecast, experiment readout, adoption, and related patterns such as metric contracts).
+Email [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) or message on [LinkedIn](https://www.linkedin.com/in/oliveiralgm/) for a walkthrough of the fuller set (ops utilization, metric contracts, AI-assisted analytics, and related platform patterns).

@@ -1,3 +1,3 @@
-from data.mock import intercom_funnel_events
+from data.mock import consumer_funnel_events, experiment_results, platform_adoption_daily
 
-__all__ = ["intercom_funnel_events"]
+__all__ = ["consumer_funnel_events", "experiment_results", "platform_adoption_daily"]

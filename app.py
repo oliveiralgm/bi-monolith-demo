@@ -43,23 +43,22 @@ DASHBOARDS = discover_dashboards()
 DASH_APPS = mount_dashboards(server, DASHBOARDS)
 _SLUG_RE = re.compile(r"^/d/([^/]+)")
 
-# Additional portfolio topics shown as stubs on the home page.
-# Full implementations stay in the private local demo; request access for a walkthrough.
+# Extra suite topics kept as stubs. Full walkthrough available on request.
 STUB_DASHBOARDS = [
     {
-        "title": "HOVER Jobs Forecast",
-        "summary": "Weekly job volume, roof/complete mix, and weather weeks. Full module available on request.",
-        "source_topic": "GitHub: HOVER_jobs_forecast",
+        "title": "Ops Utilization",
+        "summary": "Team utilization and touch-time views for operations coaching. Full module on request.",
+        "source_topic": "Leadership analytics pattern",
     },
     {
-        "title": "Experiment Readout",
-        "summary": "A/B readout with sample size and power-style hints. Full module available on request.",
-        "source_topic": "Tableau to Dash spirit",
+        "title": "Metric Contracts",
+        "summary": "Definition-first metrics browser with grain and owner metadata. Full module on request.",
+        "source_topic": "Metrics systems",
     },
     {
-        "title": "Adoption Telemetry",
-        "summary": "Page-load adoption stub reading local sqlite telemetry. Full module available on request.",
-        "source_topic": "Platform adoption",
+        "title": "AI-Assisted Analytics",
+        "summary": "Exploration workspace framing LLM-backed readout next to structured KPIs. Full module on request.",
+        "source_topic": "AI-assisted BI",
     },
 ]
 
@@ -78,12 +77,12 @@ LOCKED_HTML = """
 </head>
 <body>
   <main class="shell locked">
-    <div class="brand">Gustavo Oliveira · BI platform demo</div>
+    <div class="brand">Gustavo Oliveira · Staff analytics platform demo</div>
     <h1>Contact Gustavo Oliveira for an access key</h1>
     <p class="lede">
-      This public scaffold shows the mounting pattern from his resume: one Flask/Dash app,
-      dashboards that register themselves, and a page-load telemetry stub. Enter a local
-      key from your <code>.env</code> to unlock the sample dashboard.
+      Architecture demo of a Staff-level analytics platform: one Flask/Dash process,
+      auto-discovered dashboards, metric-style mock surfaces, and a telemetry stub.
+      Enter a local key from your <code>.env</code> to unlock, or ask for the full suite walkthrough.
     </p>
     <div class="panel">
       <form method="post" action="{{ url_for('login') }}">
@@ -120,19 +119,20 @@ HOME_HTML = """
 <body>
   <main class="shell">
     <div class="topbar">
-      <div class="brand">Gustavo Oliveira · BI platform demo</div>
+      <div class="brand">Gustavo Oliveira · Staff analytics platform demo</div>
       {% if public_mode %}
       <span class="badge">Public playground</span>
       {% else %}
       <a href="{{ url_for('logout') }}">Lock again</a>
       {% endif %}
     </div>
-    <h1>Auto-discovered dashboards</h1>
+    <h1>Staff analytics platform demo</h1>
     <p class="lede">
-      One Flask process mounts every module in <code>dashboards/</code> that exposes a
-      <code>DASHBOARD</code> dict. Add a file, restart, it shows up here. This public repo
-      ships one working sample; other portfolio topics are listed as stubs
-      {% if public_mode %}(full implementations available on request){% endif %}.
+      Auto-discovery mounting: every module in <code>dashboards/</code> that exposes a
+      <code>DASHBOARD</code> dict is registered under one Flask/Dash process. This public
+      playground ships consumer funnel, experiment readout, and platform adoption samples
+      on mock data. Stub cards below mark the fuller suite
+      {% if public_mode %}available on request{% else %}available with a private key / walkthrough{% endif %}.
     </p>
     <div class="card-list">
       {% for d in dashboards %}

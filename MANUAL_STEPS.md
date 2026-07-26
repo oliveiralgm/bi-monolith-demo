@@ -35,7 +35,7 @@ No Render/Fly/Railway CLI login was available in this environment. Deploy files 
 1. Open: https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo
 2. Sign in with GitHub.
 3. Confirm the Blueprint (free web service). Env includes `BI_DEMO_PUBLIC=1`.
-4. Wait for deploy. Open the `*.onrender.com` URL. Sample funnel should load with no key.
+4. Wait for deploy. Open the `*.onrender.com` URL. Consumer Funnel, Experiment Readout, and Platform Adoption should load with no key.
 5. Optional: edit README "Live playground" and replace the placeholder with your URL.
 6. Optional CLI later: `render login` then deploy from the Blueprint.
 
