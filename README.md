@@ -1,5 +1,11 @@
 # BI Monolith Demo
 
+**Live playground:** [https://bi-monolith-demo.onrender.com/](https://bi-monolith-demo.onrender.com/)
+
+Public click-and-play demo (no access key). Free-tier Render may take ~30-60s on first hit after idle (cold start). Mock data only.
+
+---
+
 Public **Staff analytics platform** architecture demo for [Gustavo Oliveira](https://github.com/oliveiralgm). One Flask + Dash process auto-discovers dashboard modules, mounts metric-style mock surfaces, and includes a page-load telemetry stub plus AI-assisted analytics framing on the home page.
 
 Built for reviewers evaluating Staff / Senior Analytics Engineer work: platform patterns (auto-mount, shared shell, adoption telemetry), experiment modernization (Tableau → Dash spirit), and digital consumer funnel readout. **Mock data only. Personal portfolio. Not employer production code.**
@@ -19,12 +25,13 @@ Architecture signals: single process, `DASHBOARD` dict registration, key gate / 
 
 ## Live playground
 
+**Live URL:** [https://bi-monolith-demo.onrender.com/](https://bi-monolith-demo.onrender.com/)
+
+With `BI_DEMO_PUBLIC=1`, visitors open the samples with no key. Stub cards stay placeholders; email for the fuller suite walkthrough.
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo)
 
-**Hosted demo:** set after first deploy (you still need to click Deploy once). With `BI_DEMO_PUBLIC=1`, visitors open the samples with no key. Stub cards stay placeholders; email for the fuller suite walkthrough.
-
-- Live URL: _(add after Render finishes, e.g. `https://bi-monolith-demo.onrender.com`)_
-- One-click: https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo
+- One-click redeploy: https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo
 
 ## What this repo includes
 
