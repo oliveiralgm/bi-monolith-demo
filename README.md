@@ -32,10 +32,6 @@ Architecture signals: single process, `DASHBOARD` dict registration, key gate / 
 
 With `BI_DEMO_PUBLIC=1`, visitors open the samples with no key. Stub cards stay placeholders; email for the fuller suite walkthrough.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo)
-
-- One-click redeploy: https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo
-
 ## What this repo includes
 
 - Flask server hosting Dash apps in one process
@@ -79,15 +75,9 @@ BI_DEMO_PUBLIC=1
 
 Then `python app.py` opens the samples with no key prompt.
 
-## Deploy (Render free tier)
+## Hosting notes
 
-1. Open: https://render.com/deploy?repo=https://github.com/oliveiralgm/bi-monolith-demo
-2. Sign in to Render (GitHub OAuth is fine).
-3. Confirm the Blueprint: `BI_DEMO_PUBLIC=1` is set so visitors can play without a key.
-4. After deploy, open the `*.onrender.com` URL and try the three samples.
-5. Paste that URL into the Live playground section above (or your profile README).
-
-Free Render services sleep after idle time; the first request after sleep can take ~30-60s.
+The public playground is already hosted at the Live playground URL above. This repo includes `render.yaml`, `Dockerfile`, and `Procfile` for that existing free-tier service. Free Render services sleep after idle time; the first request after sleep can take ~30-60s.
 
 Docker alternative:
 
