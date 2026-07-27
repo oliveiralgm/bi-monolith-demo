@@ -14,7 +14,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, make_response, redirect, render_template_string, request, url_for
+from flask import Flask, g, make_response, redirect, render_template_string, request, url_for
 
 from auth import (
     COOKIE_NAME,
@@ -35,6 +35,8 @@ load_dotenv(ROOT / ".env")
 
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "8050"))
+ME_COOKIE = "bi_demo_me"
+ME_COOKIE_MAX_AGE = 365 * 24 * 3600
 
 server = Flask(__name__, static_folder="assets", static_url_path="/assets")
 server.secret_key = os.environ.get("FLASK_SECRET_KEY") or "dev-only-change-me"
@@ -43,6 +45,19 @@ server.permanent_session_lifetime = timedelta(days=7)
 DASHBOARDS = discover_dashboards()
 DASH_APPS = mount_dashboards(server, DASHBOARDS)
 _SLUG_RE = re.compile(r"^/d/([^/]+)")
+
+
+def _client_ip() -> str:
+    forwarded = (request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
+    if forwarded:
+        return forwarded[:64]
+    return (request.remote_addr or "")[:64]
+
+
+def _is_self_visitor() -> bool:
+    if request.args.get("me") in {"1", "true", "yes"}:
+        return True
+    return request.cookies.get(ME_COOKIE) == "1"
 
 # Old bookmarks / prior deploys (Lead Funnel Conversion, consumer rename).
 DASHBOARD_ALIASES = {
@@ -165,7 +180,7 @@ HOME_HTML = """
     </div>
     <p class="footnote">
       {{ dashboards|length }} dashboard{{ '' if dashboards|length == 1 else 's' }} mounted ·
-      mock data · telemetry stub writing to <code>data/telemetry.sqlite</code> ·
+      mock charts labeled in-app · live page-load telemetry on Platform Adoption ·
       contact <a href="mailto:oliveiralgm@gmail.com">oliveiralgm@gmail.com</a> for the full set
     </p>
   </main>
@@ -177,6 +192,7 @@ HOME_HTML = """
 @server.before_request
 def gate_and_telemetry():
     path = request.path or "/"
+    g.set_me_cookie = request.args.get("me") in {"1", "true", "yes"}
 
     if path.startswith("/assets") or path in {"/locked", "/login", "/healthz"}:
         return None
@@ -206,9 +222,28 @@ def gate_and_telemetry():
     if request.method == "GET" and "/_dash" not in path and not path.startswith("/assets"):
         m = _SLUG_RE.match(path)
         slug = m.group(1) if m else ("home" if path == "/" else None)
-        record_page_load(path, dashboard_slug=slug, user_agent=request.headers.get("User-Agent"))
+        record_page_load(
+            path,
+            dashboard_slug=slug,
+            user_agent=request.headers.get("User-Agent"),
+            visitor_kind="self" if _is_self_visitor() else "other",
+            client_ip=_client_ip(),
+        )
 
     return None
+
+
+@server.after_request
+def attach_me_cookie(response):
+    if getattr(g, "set_me_cookie", False):
+        response.set_cookie(
+            ME_COOKIE,
+            "1",
+            max_age=ME_COOKIE_MAX_AGE,
+            samesite="Lax",
+            httponly=False,
+        )
+    return response
 
 
 @server.get("/healthz")

@@ -25,6 +25,7 @@ def layout():
             "Uses Yahoo prices when reachable, otherwise a synthetic correlated pair. "
             "Portfolio demo only. Not financial advice."
         ),
+        data_kinds=["public", "synthetic"],
         controls=[
             html.Label("Pair"),
             dcc.Dropdown(

@@ -50,6 +50,7 @@ def layout():
             "Interactive A/B readout with sample size, lift, and power-style hints. "
             "Spirit of moving a legacy Tableau experiment workbook into a self-serve Dash product."
         ),
+        data_kinds=["mock"],
         controls=[
             html.Label("Segment"),
             dcc.Dropdown(

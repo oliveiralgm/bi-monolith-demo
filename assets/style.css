@@ -196,6 +196,49 @@ button,
   border-radius: 8px;
   padding: 0.35rem 0.65rem;
   background: var(--panel);
+  display: inline-block;
+}
+
+.data-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.55rem 0 0.35rem;
+}
+
+.badge-mock {
+  color: #7a5a2a;
+  border-color: #e0c894;
+  background: #f7efde;
+}
+
+.badge-live {
+  color: #1a5c52;
+  border-color: #9dcec6;
+  background: #e7f4f1;
+}
+
+.badge-public {
+  color: #1f4e5f;
+  border-color: #b7c9d0;
+  background: #eef4f6;
+}
+
+.section-callout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+  margin: 0.4rem 0 0.15rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.7);
+}
+
+.section-callout .muted {
+  font-size: 0.88rem;
+  margin: 0;
 }
 
 .dash-page {

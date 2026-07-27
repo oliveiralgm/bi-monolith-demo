@@ -21,7 +21,7 @@ Contact: [oliveiralgm@gmail.com](mailto:oliveiralgm@gmail.com) · [LinkedIn](htt
 | **Lead Conversion** (`/d/lead-conversion/`) | Application → review → offer → funding with channel/cohort slices |
 | **Pair Trader Lab** (`/d/pair-trader/`) | Spread / z-score pairs playground inspired by [pair_trader](https://github.com/oliveiralgm/pair_trader). Portfolio demo only. Not financial advice. |
 | **Experiment Readout** | A/B sample size, lift, MoE, power-style hints (self-serve experiment owners) |
-| **Platform Adoption** | DAU, peak users, per-dashboard usage + local sqlite page-load stub |
+| **Platform Adoption** | Mock suite DAU/peak + live page-load stub (self vs other visitors) |
 | **Stubs on home** | Metric contracts, AI-assisted analytics (full suite on request) |
 
 Architecture signals: single process, `DASHBOARD` dict registration, key gate / public playground mode, deployable Blueprint.
@@ -114,9 +114,19 @@ DASHBOARD = {
 
 Modules whose names start with `_` are skipped (shared helpers).
 
+## Mock vs live data
+
+Dashboards label their sources in the UI:
+
+- **Mock data** — Lead Conversion, Experiment Readout, and Platform Adoption suite DAU/peak charts
+- **Live telemetry from this deployment** — Platform Adoption page-load panels (sqlite on the running instance)
+- Pair Trader Lab — Yahoo when reachable, otherwise synthetic (the KPI row shows which)
+
 ## Telemetry stub
 
-Authenticated HTML navigations append a row to `data/telemetry.sqlite`. Delete that file anytime to reset. The Platform Adoption sample charts mock suite DAU/peak plus this local stub.
+Authenticated HTML navigations append a row to `data/telemetry.sqlite` (path, slug, visitor kind, client IP). Delete that file anytime to reset.
+
+To tag your own browsing as **self** (vs other visitors), open once with `?me=1`, e.g. [https://bi-monolith-demo.onrender.com/?me=1](https://bi-monolith-demo.onrender.com/?me=1). That sets a cookie. Client IPs are stored only for visit classification on this demo. See `TRACKING.md` for Render caveats (ephemeral disk).
 
 ## Request the full suite
 

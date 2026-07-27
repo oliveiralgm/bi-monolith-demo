@@ -19,6 +19,7 @@ def layout():
             "Application → review → offer → funding with channel and cohort slices. "
             "Metric-style mock dashboard for a Staff analytics platform demo."
         ),
+        data_kinds=["mock"],
         controls=[
             html.Label("Channel"),
             dcc.Dropdown(
