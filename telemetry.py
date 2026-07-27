@@ -7,6 +7,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
+from urllib.parse import urlparse
 
 _DB_PATH = Path(__file__).resolve().parent / "data" / "telemetry.sqlite"
 _LOCK = threading.Lock()
@@ -22,6 +23,75 @@ ROLE_CHOICES = (
 )
 FOUND_CHOICES = ("Resume", "GitHub", "Referral", "Other")
 
+_PAGE_LOAD_EXTRA_COLS = (
+    ("referrer", "TEXT"),
+    ("referrer_host", "TEXT"),
+    ("source_class", "TEXT"),
+    ("utm_source", "TEXT"),
+    ("utm_medium", "TEXT"),
+    ("utm_campaign", "TEXT"),
+    ("ref_param", "TEXT"),
+)
+
+
+def referrer_host(referrer: str | None) -> str:
+    """Hostname from a Referer URL, or empty."""
+    raw = (referrer or "").strip()
+    if not raw:
+        return ""
+    try:
+        host = (urlparse(raw).hostname or "").lower().strip(".")
+    except Exception:
+        return ""
+    if host.startswith("www."):
+        host = host[4:]
+    return host[:120]
+
+
+def _classify_hint(hint: str) -> str:
+    h = hint.strip().lower()
+    if not h:
+        return "Direct"
+    if "github" in h:
+        return "GitHub"
+    if "linkedin" in h:
+        return "LinkedIn"
+    if "google" in h:
+        return "Google"
+    if h in {"direct", "none", "(direct)", "render", "onrender"}:
+        return "Direct"
+    if h in {"resume", "cv"}:
+        return "Resume"
+    # Keep a short custom label (e.g. utm_source=newsletter).
+    cleaned = hint.strip()[:64]
+    return cleaned or "Other"
+
+
+def classify_source(
+    referrer: str | None = None,
+    utm_source: str | None = None,
+    ref: str | None = None,
+) -> str:
+    """Light traffic class from UTM/ref first, else Referer host."""
+    hint = (utm_source or "").strip() or (ref or "").strip()
+    if hint:
+        return _classify_hint(hint)
+
+    host = referrer_host(referrer)
+    if not host:
+        return "Direct"
+    if "github.com" in host or host.endswith("github.io"):
+        return "GitHub"
+    if "linkedin." in host or host == "linkedin.com":
+        return "LinkedIn"
+    if host == "google.com" or host.endswith(".google.com") or host.startswith("google."):
+        return "Google"
+    if "onrender.com" in host or host.endswith("render.com"):
+        return "Direct"
+    if host in {"localhost", "127.0.0.1"}:
+        return "Direct"
+    return host or "Other"
+
 
 def _connect() -> sqlite3.Connection:
     _DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -35,7 +105,14 @@ def _connect() -> sqlite3.Connection:
             dashboard_slug TEXT,
             user_agent TEXT,
             visitor_kind TEXT,
-            client_ip TEXT
+            client_ip TEXT,
+            referrer TEXT,
+            referrer_host TEXT,
+            source_class TEXT,
+            utm_source TEXT,
+            utm_medium TEXT,
+            utm_campaign TEXT,
+            ref_param TEXT
         )
         """
     )
@@ -58,6 +135,9 @@ def _connect() -> sqlite3.Connection:
         conn.execute("ALTER TABLE page_loads ADD COLUMN visitor_kind TEXT")
     if "client_ip" not in cols:
         conn.execute("ALTER TABLE page_loads ADD COLUMN client_ip TEXT")
+    for name, decl in _PAGE_LOAD_EXTRA_COLS:
+        if name not in cols:
+            conn.execute(f"ALTER TABLE page_loads ADD COLUMN {name} {decl}")
     conn.commit()
     return conn
 
@@ -68,19 +148,31 @@ def record_page_load(
     user_agent: str | None = None,
     visitor_kind: str | None = None,
     client_ip: str | None = None,
+    referrer: str | None = None,
+    referrer_host_value: str | None = None,
+    source_class: str | None = None,
+    utm_source: str | None = None,
+    utm_medium: str | None = None,
+    utm_campaign: str | None = None,
+    ref_param: str | None = None,
 ) -> None:
     ts = datetime.now(timezone.utc).isoformat()
     kind = (visitor_kind or "other").strip().lower()
     if kind not in {"self", "other"}:
         kind = "other"
+    ref_raw = (referrer or "")[:500]
+    host = (referrer_host_value or referrer_host(ref_raw) or "")[:120]
+    src = (source_class or classify_source(ref_raw, utm_source, ref_param) or "Direct")[:64]
     with _LOCK:
         conn = _connect()
         try:
             conn.execute(
                 """
                 INSERT INTO page_loads
-                    (ts_utc, path, dashboard_slug, user_agent, visitor_kind, client_ip)
-                VALUES (?, ?, ?, ?, ?, ?)
+                    (ts_utc, path, dashboard_slug, user_agent, visitor_kind, client_ip,
+                     referrer, referrer_host, source_class,
+                     utm_source, utm_medium, utm_campaign, ref_param)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     ts,
@@ -89,6 +181,13 @@ def record_page_load(
                     (user_agent or "")[:240],
                     kind,
                     (client_ip or "")[:64],
+                    ref_raw,
+                    host,
+                    src,
+                    (utm_source or "")[:64],
+                    (utm_medium or "")[:64],
+                    (utm_campaign or "")[:64],
+                    (ref_param or "")[:64],
                 ),
             )
             conn.commit()
@@ -129,6 +228,18 @@ def _by_dashboard(conn: sqlite3.Connection, kind: str | None = None) -> List[Dic
     return [{"dashboard": r["dashboard_slug"] or "(home)", "loads": r["n"]} for r in rows]
 
 
+def _by_source(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
+    rows = conn.execute(
+        """
+        SELECT COALESCE(NULLIF(TRIM(source_class), ''), 'Direct') AS source_class, COUNT(*) AS n
+        FROM page_loads
+        GROUP BY 1
+        ORDER BY n DESC, source_class ASC
+        """
+    )
+    return [{"source": r["source_class"], "loads": r["n"]} for r in rows]
+
+
 def summary_stats(days: int = 30) -> Dict[str, Any]:
     """Aggregate stub metrics for the adoption dashboard."""
     with _LOCK:
@@ -164,10 +275,14 @@ def summary_stats(days: int = 30) -> Dict[str, Any]:
                     "path": r["path"],
                     "kind": r["visitor_kind"] or "other",
                     "ip": r["client_ip"] or "",
+                    "source": r["source_class"] or "Direct",
+                    "referrer_host": r["referrer_host"] or "",
+                    "utm_source": r["utm_source"] or "",
                 }
                 for r in conn.execute(
                     """
-                    SELECT ts_utc, path, visitor_kind, client_ip
+                    SELECT ts_utc, path, visitor_kind, client_ip,
+                           source_class, referrer_host, utm_source
                     FROM page_loads
                     ORDER BY id DESC
                     LIMIT 12
@@ -197,6 +312,7 @@ def summary_stats(days: int = 30) -> Dict[str, Any]:
                 "by_dashboard": _by_dashboard(conn),
                 "by_dashboard_self": _by_dashboard(conn, "self"),
                 "by_dashboard_other": _by_dashboard(conn, "other"),
+                "by_source": _by_source(conn),
                 "by_day": by_day,
                 "recent": recent,
                 "other_ips": distinct_other_ips,

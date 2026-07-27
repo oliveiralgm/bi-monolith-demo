@@ -57,6 +57,25 @@ def _visitor_intro_panel(intros: dict) -> html.Div:
     )
 
 
+def _source_panel(by_source: list) -> html.Div:
+    items = [
+        html.Li(f"{row['source']}: {row['loads']}")
+        for row in (by_source or [])
+    ] or [html.Li("No sources yet")]
+    return html.Div(
+        className="visitor-intro-panel",
+        children=[
+            html.H3("Traffic source (referrer / UTM)"),
+            html.P(
+                "Classified from landing UTM/ref (cookie-backed) or HTTP Referer. "
+                "GitHub, LinkedIn, Google, Direct, else hostname.",
+                className="muted",
+            ),
+            html.Ul(items),
+        ],
+    )
+
+
 def layout():
     return page_shell(
         title="Platform Adoption",
@@ -81,12 +100,14 @@ def layout():
             section_callout(
                 "live",
                 "Page loads on this deployment, split into your visits (self) vs everyone else. "
-                "Mark yourself once with ?me=1. Client IPs are stored only for visit "
-                "classification on this demo.",
+                "Mark yourself once with ?me=1. Referrer / UTM source is stored with each load "
+                "(referrer may reveal the previous site).",
             ),
             html.Div(id="adoption-live-kpis"),
             graph("adoption-local"),
             graph("adoption-self-other"),
+            graph("adoption-by-source"),
+            html.Div(id="adoption-source-panel"),
             html.Div(id="adoption-recent", className="muted"),
             html.Div(id="adoption-visitor-intros"),
         ],
@@ -101,6 +122,8 @@ def register_callbacks(app):
         Output("adoption-live-kpis", "children"),
         Output("adoption-local", "figure"),
         Output("adoption-self-other", "figure"),
+        Output("adoption-by-source", "figure"),
+        Output("adoption-source-panel", "children"),
         Output("adoption-recent", "children"),
         Output("adoption-visitor-intros", "children"),
         Input("adoption-refresh", "n_clicks"),
@@ -123,6 +146,7 @@ def register_callbacks(app):
         stats = summary_stats()
         other_by_dash = stats["by_dashboard_other"]
         self_by_dash = stats["by_dashboard_self"]
+        by_source = stats.get("by_source") or []
 
         kpis = kpi_row(
             [
@@ -216,16 +240,36 @@ def register_callbacks(app):
             legend_title_text="",
         )
 
+        if by_source:
+            source_fig = px.bar(
+                by_source,
+                x="source",
+                y="loads",
+                title="Loads by traffic source (live)",
+                color_discrete_sequence=[CHART_COLORS[3]],
+                labels={"source": "Source", "loads": "Loads"},
+            )
+        else:
+            source_fig = px.bar(title="Loads by traffic source (no events yet)")
+        source_fig.update_layout(
+            margin=dict(l=40, r=20, t=50, b=40),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+        )
+
         recent_bits = []
         for hit in stats.get("recent") or []:
             ip = hit.get("ip") or "-"
-            recent_bits.append(f"{hit['kind']} · {hit['path']} · {ip}")
+            src = hit.get("source") or "Direct"
+            ref_host = hit.get("referrer_host") or "-"
+            recent_bits.append(f"{hit['kind']} · {hit['path']} · {src} · ref:{ref_host} · {ip}")
         recent_line = "Recent hits: " + (" · ".join(recent_bits[:6]) if recent_bits else "none yet")
         other_ips = stats.get("other_ips") or []
         if other_ips:
             recent_line += f" · other IPs seen: {', '.join(other_ips)}"
 
         intros_panel = _visitor_intro_panel(stats.get("visitor_intros") or {})
+        source_panel = _source_panel(by_source)
 
         return (
             kpis,
@@ -234,6 +278,8 @@ def register_callbacks(app):
             live_kpis,
             local_fig,
             split_fig,
+            source_fig,
+            source_panel,
             recent_line,
             intros_panel,
         )

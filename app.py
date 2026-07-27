@@ -8,10 +8,13 @@ Not the production systems or proprietary code from any employer.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from datetime import timedelta
 from pathlib import Path
+from typing import Any, Dict
+from urllib.parse import parse_qs, urlencode
 
 from dotenv import load_dotenv
 from flask import Flask, g, make_response, redirect, render_template_string, request, url_for
@@ -28,7 +31,12 @@ from auth import (
     require_access,
 )
 from discovery import discover_dashboards, mount_dashboards
-from telemetry import record_page_load, record_visitor_intro
+from telemetry import (
+    classify_source,
+    record_page_load,
+    record_visitor_intro,
+    referrer_host,
+)
 
 ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT / ".env")
@@ -39,6 +47,8 @@ ME_COOKIE = "bi_demo_me"
 ME_COOKIE_MAX_AGE = 365 * 24 * 3600
 WHO_COOKIE = "bi_demo_who"
 WHO_COOKIE_MAX_AGE = 30 * 24 * 3600
+SRC_COOKIE = "bi_demo_src"
+SRC_COOKIE_MAX_AGE = 90 * 24 * 3600
 
 server = Flask(__name__, static_folder="assets", static_url_path="/assets")
 server.secret_key = os.environ.get("FLASK_SECRET_KEY") or "dev-only-change-me"
@@ -60,6 +70,104 @@ def _is_self_visitor() -> bool:
     if request.args.get("me") in {"1", "true", "yes"}:
         return True
     return request.cookies.get(ME_COOKIE) == "1"
+
+
+def _clean_attr(value: str | None, limit: int = 64) -> str:
+    return (value or "").strip()[:limit]
+
+
+def _read_src_cookie() -> Dict[str, str]:
+    raw = request.cookies.get(SRC_COOKIE) or ""
+    if not raw:
+        return {}
+    data: Dict[str, Any]
+    if raw.startswith("{"):
+        try:
+            parsed = json.loads(raw)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return {}
+        data = parsed if isinstance(parsed, dict) else {}
+    else:
+        qs = parse_qs(raw, keep_blank_values=True)
+        data = {k: (v[0] if v else "") for k, v in qs.items()}
+    return {
+        "utm_source": _clean_attr(str(data.get("utm_source") or "")),
+        "utm_medium": _clean_attr(str(data.get("utm_medium") or "")),
+        "utm_campaign": _clean_attr(str(data.get("utm_campaign") or "")),
+        "ref": _clean_attr(str(data.get("ref") or "")),
+        "source_class": _clean_attr(str(data.get("source_class") or "")),
+    }
+
+
+def _query_attribution() -> Dict[str, str]:
+    return {
+        "utm_source": _clean_attr(request.args.get("utm_source")),
+        "utm_medium": _clean_attr(request.args.get("utm_medium")),
+        "utm_campaign": _clean_attr(request.args.get("utm_campaign")),
+        "ref": _clean_attr(request.args.get("ref")),
+    }
+
+
+def _same_site_referrer(host: str) -> bool:
+    if not host:
+        return True
+    if host in {"localhost", "127.0.0.1"}:
+        return True
+    if "onrender.com" in host or host.endswith("render.com"):
+        return True
+    req_host = (request.host or "").split(":")[0].lower()
+    if req_host.startswith("www."):
+        req_host = req_host[4:]
+    return bool(req_host) and (host == req_host or host.endswith("." + req_host))
+
+
+def _resolve_attribution() -> Dict[str, Any]:
+    """Combine Referer + UTM/ref (cookie-backed) for first-touch style source."""
+    referrer = (request.headers.get("Referer") or request.referrer or "")[:500]
+    host = referrer_host(referrer)
+    query = _query_attribution()
+    cookie = _read_src_cookie()
+    has_query = any(query.values())
+
+    if has_query:
+        attrs = dict(query)
+        attrs["source_class"] = classify_source(
+            referrer=referrer,
+            utm_source=attrs.get("utm_source"),
+            ref=attrs.get("ref"),
+        )
+        g.set_src_cookie = attrs
+    elif cookie:
+        attrs = dict(cookie)
+        if not attrs.get("source_class"):
+            attrs["source_class"] = classify_source(
+                referrer=referrer,
+                utm_source=attrs.get("utm_source"),
+                ref=attrs.get("ref"),
+            )
+    else:
+        source_class = classify_source(referrer=referrer)
+        attrs = {
+            "utm_source": "",
+            "utm_medium": "",
+            "utm_campaign": "",
+            "ref": "",
+            "source_class": source_class,
+        }
+        # Persist external referrer so later same-site clicks keep the class.
+        if source_class != "Direct" and not _same_site_referrer(host):
+            g.set_src_cookie = attrs
+
+    return {
+        "referrer": referrer,
+        "referrer_host": host,
+        "source_class": attrs.get("source_class") or "Direct",
+        "utm_source": attrs.get("utm_source") or "",
+        "utm_medium": attrs.get("utm_medium") or "",
+        "utm_campaign": attrs.get("utm_campaign") or "",
+        "ref": attrs.get("ref") or "",
+    }
+
 
 # Old bookmarks / prior deploys (Lead Funnel Conversion, consumer rename).
 DASHBOARD_ALIASES = {
@@ -230,12 +338,20 @@ def gate_and_telemetry():
     if request.method == "GET" and "/_dash" not in path and not path.startswith("/assets"):
         m = _SLUG_RE.match(path)
         slug = m.group(1) if m else ("home" if path == "/" else None)
+        attr = _resolve_attribution()
         record_page_load(
             path,
             dashboard_slug=slug,
             user_agent=request.headers.get("User-Agent"),
             visitor_kind="self" if _is_self_visitor() else "other",
             client_ip=_client_ip(),
+            referrer=attr["referrer"],
+            referrer_host_value=attr["referrer_host"],
+            source_class=attr["source_class"],
+            utm_source=attr["utm_source"],
+            utm_medium=attr["utm_medium"],
+            utm_campaign=attr["utm_campaign"],
+            ref_param=attr["ref"],
         )
 
     return None
@@ -257,6 +373,22 @@ def attach_me_cookie(response):
             WHO_COOKIE,
             who_value,
             max_age=WHO_COOKIE_MAX_AGE,
+            samesite="Lax",
+            httponly=False,
+        )
+    src_value = getattr(g, "set_src_cookie", None)
+    if src_value and isinstance(src_value, dict):
+        payload = {
+            "utm_source": _clean_attr(src_value.get("utm_source")),
+            "utm_medium": _clean_attr(src_value.get("utm_medium")),
+            "utm_campaign": _clean_attr(src_value.get("utm_campaign")),
+            "ref": _clean_attr(src_value.get("ref")),
+            "source_class": _clean_attr(src_value.get("source_class")),
+        }
+        response.set_cookie(
+            SRC_COOKIE,
+            urlencode(payload),
+            max_age=SRC_COOKIE_MAX_AGE,
             samesite="Lax",
             httponly=False,
         )
