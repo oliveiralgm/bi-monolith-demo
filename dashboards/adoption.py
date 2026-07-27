@@ -10,6 +10,53 @@ from data.mock import platform_adoption_daily
 from telemetry import summary_stats
 
 
+def _visitor_intro_panel(intros: dict) -> html.Div:
+    by_role = intros.get("by_role") or []
+    by_found = intros.get("by_found") or []
+    recent = intros.get("recent") or []
+    answered = int(intros.get("answered") or 0)
+    skipped = int(intros.get("skipped") or 0)
+
+    role_items = [
+        html.Li(f"{row['role']}: {row['n']}")
+        for row in by_role
+    ] or [html.Li("No answers yet")]
+    found_items = [
+        html.Li(f"{row['found_via']}: {row['n']}")
+        for row in by_found
+    ] or [html.Li("No answers yet")]
+
+    recent_bits = []
+    for row in recent[:8]:
+        parts = [row.get("kind") or "other"]
+        if row.get("role"):
+            parts.append(row["role"])
+        if row.get("company"):
+            parts.append(row["company"])
+        if row.get("found_via"):
+            parts.append(f"via {row['found_via']}")
+        recent_bits.append(" · ".join(parts))
+
+    return html.Div(
+        className="visitor-intro-panel",
+        children=[
+            html.H3("Visitor hellos (optional)"),
+            html.P(
+                f"{answered} answered · {skipped} skipped · company shown only when submitted",
+                className="muted",
+            ),
+            html.P("By role", className="muted"),
+            html.Ul(role_items),
+            html.P("How they found this", className="muted"),
+            html.Ul(found_items),
+            html.P(
+                "Recent: " + (" · ".join(recent_bits) if recent_bits else "none yet"),
+                className="muted",
+            ),
+        ],
+    )
+
+
 def layout():
     return page_shell(
         title="Platform Adoption",
@@ -41,6 +88,7 @@ def layout():
             graph("adoption-local"),
             graph("adoption-self-other"),
             html.Div(id="adoption-recent", className="muted"),
+            html.Div(id="adoption-visitor-intros"),
         ],
     )
 
@@ -54,6 +102,7 @@ def register_callbacks(app):
         Output("adoption-local", "figure"),
         Output("adoption-self-other", "figure"),
         Output("adoption-recent", "children"),
+        Output("adoption-visitor-intros", "children"),
         Input("adoption-refresh", "n_clicks"),
         Input("adoption-interval", "n_intervals"),
     )
@@ -169,14 +218,25 @@ def register_callbacks(app):
 
         recent_bits = []
         for hit in stats.get("recent") or []:
-            ip = hit.get("ip") or "—"
+            ip = hit.get("ip") or "-"
             recent_bits.append(f"{hit['kind']} · {hit['path']} · {ip}")
         recent_line = "Recent hits: " + (" · ".join(recent_bits[:6]) if recent_bits else "none yet")
         other_ips = stats.get("other_ips") or []
         if other_ips:
             recent_line += f" · other IPs seen: {', '.join(other_ips)}"
 
-        return kpis, dau_fig, dash_fig, live_kpis, local_fig, split_fig, recent_line
+        intros_panel = _visitor_intro_panel(stats.get("visitor_intros") or {})
+
+        return (
+            kpis,
+            dau_fig,
+            dash_fig,
+            live_kpis,
+            local_fig,
+            split_fig,
+            recent_line,
+            intros_panel,
+        )
 
 
 DASHBOARD = {

@@ -28,7 +28,7 @@ from auth import (
     require_access,
 )
 from discovery import discover_dashboards, mount_dashboards
-from telemetry import record_page_load
+from telemetry import record_page_load, record_visitor_intro
 
 ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT / ".env")
@@ -37,6 +37,8 @@ HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "8050"))
 ME_COOKIE = "bi_demo_me"
 ME_COOKIE_MAX_AGE = 365 * 24 * 3600
+WHO_COOKIE = "bi_demo_who"
+WHO_COOKIE_MAX_AGE = 30 * 24 * 3600
 
 server = Flask(__name__, static_folder="assets", static_url_path="/assets")
 server.secret_key = os.environ.get("FLASK_SECRET_KEY") or "dev-only-change-me"
@@ -184,6 +186,7 @@ HOME_HTML = """
       contact <a href="mailto:oliveiralgm@gmail.com">oliveiralgm@gmail.com</a> for the full set
     </p>
   </main>
+  <script src="/assets/visitor-intro.js" defer></script>
 </body>
 </html>
 """
@@ -209,6 +212,11 @@ def gate_and_telemetry():
         mark_authenticated()
 
     authenticated = is_authenticated()
+
+    if path == "/api/visitor-intro":
+        if authenticated:
+            return None
+        return redirect(url_for("locked", next="/"))
 
     if "/_dash" in path or path.endswith((".js", ".css", ".map", ".ico")):
         if authenticated:
@@ -243,7 +251,37 @@ def attach_me_cookie(response):
             samesite="Lax",
             httponly=False,
         )
+    who_value = getattr(g, "set_who_cookie", None)
+    if who_value:
+        response.set_cookie(
+            WHO_COOKIE,
+            who_value,
+            max_age=WHO_COOKIE_MAX_AGE,
+            samesite="Lax",
+            httponly=False,
+        )
     return response
+
+
+@server.post("/api/visitor-intro")
+def visitor_intro():
+    """Optional who-are-you answers (or skip). Does not gate dashboards."""
+    payload = request.get_json(silent=True) or {}
+    skipped = bool(payload.get("skipped"))
+    company = "" if skipped else str(payload.get("company") or "")
+    role = "" if skipped else str(payload.get("role") or "")
+    found_via = "" if skipped else str(payload.get("found_via") or "")
+
+    record_visitor_intro(
+        company=company,
+        role=role,
+        found_via=found_via,
+        skipped=skipped,
+        visitor_kind="self" if _is_self_visitor() else "other",
+        client_ip=_client_ip(),
+    )
+    g.set_who_cookie = "skipped" if skipped else "answered"
+    return {"ok": True, "skipped": skipped}
 
 
 @server.get("/healthz")

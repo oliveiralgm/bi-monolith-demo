@@ -12,6 +12,17 @@ _DB_PATH = Path(__file__).resolve().parent / "data" / "telemetry.sqlite"
 _LOCK = threading.Lock()
 
 
+ROLE_CHOICES = (
+    "Recruiter",
+    "Hiring manager",
+    "Engineer",
+    "Analyst",
+    "Other",
+    "Prefer not to say",
+)
+FOUND_CHOICES = ("Resume", "GitHub", "Referral", "Other")
+
+
 def _connect() -> sqlite3.Connection:
     _DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(_DB_PATH))
@@ -23,6 +34,20 @@ def _connect() -> sqlite3.Connection:
             path TEXT NOT NULL,
             dashboard_slug TEXT,
             user_agent TEXT,
+            visitor_kind TEXT,
+            client_ip TEXT
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS visitor_intros (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts_utc TEXT NOT NULL,
+            company TEXT,
+            role TEXT,
+            found_via TEXT,
+            skipped INTEGER NOT NULL DEFAULT 0,
             visitor_kind TEXT,
             client_ip TEXT
         )
@@ -175,6 +200,116 @@ def summary_stats(days: int = 30) -> Dict[str, Any]:
                 "by_day": by_day,
                 "recent": recent,
                 "other_ips": distinct_other_ips,
+                "visitor_intros": _visitor_intro_stats(conn),
             }
         finally:
             conn.close()
+
+
+def record_visitor_intro(
+    company: str | None = None,
+    role: str | None = None,
+    found_via: str | None = None,
+    skipped: bool = False,
+    visitor_kind: str | None = None,
+    client_ip: str | None = None,
+) -> None:
+    """Store an optional who-are-you answer (or an explicit skip)."""
+    ts = datetime.now(timezone.utc).isoformat()
+    kind = (visitor_kind or "other").strip().lower()
+    if kind not in {"self", "other"}:
+        kind = "other"
+
+    company_clean = (company or "").strip()[:120]
+    role_clean = (role or "").strip()[:64]
+    found_clean = (found_via or "").strip()[:64]
+    if role_clean and role_clean not in ROLE_CHOICES:
+        role_clean = "Other"
+    if found_clean and found_clean not in FOUND_CHOICES:
+        found_clean = "Other"
+
+    with _LOCK:
+        conn = _connect()
+        try:
+            conn.execute(
+                """
+                INSERT INTO visitor_intros
+                    (ts_utc, company, role, found_via, skipped, visitor_kind, client_ip)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    ts,
+                    company_clean or None,
+                    None if skipped else (role_clean or None),
+                    None if skipped else (found_clean or None),
+                    1 if skipped else 0,
+                    kind,
+                    (client_ip or "")[:64],
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+
+def _visitor_intro_stats(conn: sqlite3.Connection) -> Dict[str, Any]:
+    answered = conn.execute(
+        "SELECT COUNT(*) AS n FROM visitor_intros WHERE skipped = 0"
+    ).fetchone()["n"]
+    skipped_n = conn.execute(
+        "SELECT COUNT(*) AS n FROM visitor_intros WHERE skipped = 1"
+    ).fetchone()["n"]
+
+    by_role = [
+        {"role": r["role"] or "(blank)", "n": r["n"]}
+        for r in conn.execute(
+            """
+            SELECT COALESCE(NULLIF(TRIM(role), ''), '(blank)') AS role, COUNT(*) AS n
+            FROM visitor_intros
+            WHERE skipped = 0
+            GROUP BY 1
+            ORDER BY n DESC, role ASC
+            """
+        )
+    ]
+
+    by_found = [
+        {"found_via": r["found_via"] or "(blank)", "n": r["n"]}
+        for r in conn.execute(
+            """
+            SELECT COALESCE(NULLIF(TRIM(found_via), ''), '(blank)') AS found_via, COUNT(*) AS n
+            FROM visitor_intros
+            WHERE skipped = 0
+            GROUP BY 1
+            ORDER BY n DESC, found_via ASC
+            """
+        )
+    ]
+
+    recent = [
+        {
+            "ts": r["ts_utc"],
+            "company": r["company"] or "",
+            "role": r["role"] or "",
+            "found_via": r["found_via"] or "",
+            "kind": r["visitor_kind"] or "other",
+            "skipped": bool(r["skipped"]),
+        }
+        for r in conn.execute(
+            """
+            SELECT ts_utc, company, role, found_via, visitor_kind, skipped
+            FROM visitor_intros
+            WHERE skipped = 0
+            ORDER BY id DESC
+            LIMIT 10
+            """
+        )
+    ]
+
+    return {
+        "answered": answered,
+        "skipped": skipped_n,
+        "by_role": by_role,
+        "by_found": by_found,
+        "recent": recent,
+    }

@@ -7,6 +7,7 @@ Page-load telemetry is built in:
 1. `app.py` `gate_and_telemetry` records authenticated HTML GETs (home + `/d/<slug>/`).
 2. Rows go to `data/telemetry.sqlite` via `telemetry.py` (path, slug, UA, visitor kind, client IP).
 3. **Platform Adoption** (`/d/adoption/`) shows mock suite DAU/peak plus a live panel of those loads, split into **self** vs **other**.
+4. Optional **visitor hello** popup (company / role / how found) posts to `/api/visitor-intro` and lands in the same sqlite. Aggregates show under Live telemetry. Skip or dismiss sets a 30-day `bi_demo_who` cookie so it does not nag.
 
 It works the same on Render as locally, with one hard limit: Render free web services use **ephemeral disk**. Redeploys, sleeps, and instance recycles wipe `telemetry.sqlite`. Counts are "this instance session," not durable history.
 
@@ -20,27 +21,31 @@ That sets a `bi_demo_me` cookie. Later hits from that browser are tagged `self`.
 
 On Platform Adoption you will see separate KPIs and charts for your visits vs other visitors, plus a light recent-hit line that can show IPs.
 
+## Optional visitor hello
+
+Friendly, dismissible popup on first visit (or until answer/skip). Answers are optional. Cookie `bi_demo_who` (30 days) stops the nag after Submit or Skip. To see it again: clear that cookie in the browser (Application → Cookies), or use a private window.
+
 ## How to view it
 
 | Where | What you see |
 | --- | --- |
-| `/d/adoption/` | Mock suite DAU/peak; live **Your visits (self)** / **Other visitors** + charts (auto-refresh ~15s) |
+| `/d/adoption/` | Mock suite DAU/peak; live **Your visits (self)** / **Other visitors** + charts + visitor hello counts (auto-refresh ~15s) |
 | Locally | Inspect or delete `data/telemetry.sqlite` to reset |
 | On Render | Same UI; do not expect persistence across deploys |
 
-Suite DAU / peak / per-dashboard bars on that page are **mock data** from `data/mock.py`. Only the local page-load panel is real hits from this deployment.
+Suite DAU / peak / per-dashboard bars on that page are **mock data** from `data/mock.py`. Only the local page-load panel (and visitor hellos) are real hits from this deployment.
 
 ## Mock vs live (elsewhere)
 
 Dashboard headers use badges:
 
 - **Mock data** — Lead Conversion, Experiment Readout, and the suite charts on Platform Adoption
-- **Live telemetry from this deployment** — Platform Adoption page-load panels
+- **Live telemetry from this deployment** — Platform Adoption page-load panels and visitor hellos
 - Pair Trader Lab — public Yahoo prices when reachable, otherwise synthetic fallback (KPI shows which)
 
 ## Privacy (short)
 
-IPs are stored for visit classification on this demo only. Not used for advertising or shared with third parties. Wipe by deleting `telemetry.sqlite` (or redeploying on free Render).
+IPs are stored for visit classification on this demo only. Optional company/role/source answers are for the portfolio demo only and show on Platform Adoption (company only if submitted). Not used for advertising or shared with third parties. Wipe by deleting `telemetry.sqlite` (or redeploying on free Render).
 
 ## Render dashboard (built-in, free/Hobby)
 

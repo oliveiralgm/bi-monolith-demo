@@ -326,3 +326,155 @@ button,
 }
 
 .js-plotly-plot .plotly .modebar { display: none !important; }
+
+/* Optional visitor hello popup */
+.visitor-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(27, 42, 47, 0.28);
+  opacity: 1;
+  transition: opacity 160ms ease;
+}
+
+.visitor-intro.is-gone {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.visitor-intro-card {
+  position: relative;
+  width: min(420px, 100%);
+  margin-bottom: 0.75rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.15rem 1.2rem 1rem;
+  box-shadow: 0 12px 40px rgba(27, 42, 47, 0.14);
+}
+
+.visitor-intro-x {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.visitor-intro-x:hover {
+  color: var(--ink);
+  background: rgba(27, 42, 47, 0.06);
+}
+
+.visitor-intro-eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+
+.visitor-intro-card h2 {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.35rem;
+  margin: 0 0 0.4rem;
+  padding-right: 1.5rem;
+}
+
+.visitor-intro-lede {
+  margin: 0 0 0.9rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.visitor-intro-form {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.visitor-intro-form label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
+}
+
+.visitor-intro-form .optional {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.visitor-intro-form select,
+.visitor-intro-form input[type="text"] {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+  background: #fff;
+  color: var(--ink);
+}
+
+.visitor-intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.visitor-intro-privacy {
+  margin: 0.85rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.visitor-intro-panel {
+  margin-top: 0.35rem;
+  padding: 0.85rem 0.95rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.visitor-intro-panel h3 {
+  margin: 0 0 0.45rem;
+  font-size: 1rem;
+  font-family: "Fraunces", Georgia, serif;
+}
+
+.visitor-intro-panel ul {
+  margin: 0.35rem 0 0.7rem;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.visitor-intro-panel .muted {
+  font-size: 0.88rem;
+}
+
+@media (min-width: 640px) {
+  .visitor-intro {
+    align-items: center;
+  }
+
+  .visitor-intro-card {
+    margin-bottom: 0;
+  }
+}
